@@ -9,27 +9,29 @@ def bem_vindo():
     print("1. Listar\n2. Cadastro\n3. Login\n4. Excluir Cadastro\n5. Sair\n")
 
 
-def listar_usuarios():
-    usuarios = []
-
-    if os.path.isfile("usuarios.json"):
+def carregar_usuarios():
+    try:
         with open("usuarios.json", "r") as arquivo:
             usuarios = json.load(arquivo)
-    else:
-        print("\nAinda não temos usuários cadastrados.")
+    except FileNotFoundError:
+        usuarios = []
+        with open("usuarios.json", "x") as arquivo:
+            json.dump(usuarios, arquivo)
+        print("\nAinda não temos usuários cadastrados")
+    return usuarios
 
-    for i, usuario in enumerate(usuarios):
-        print("Usuário: ", i+1, "-", usuario["id"])
+
+def listar_usuarios():
+    usuarios = carregar_usuarios()
+
+    for i, usuario in enumerate(usuarios, start=1):
+        print(f"Usuário: {i} - {usuario['id']}")
 
 
 def cadastrar():
-    usuarios = []
+    usuarios = carregar_usuarios()
     usuarios_existente = False
     senha_ok = False
-
-    if os.path.isfile("usuarios.json"):
-        with open("usuarios.json", "r") as arquivo:
-            usuarios = json.load(arquivo)
 
     novo_usuario = {
         "id": input("\nCadastre um Usuário: ").lower(),
@@ -69,38 +71,30 @@ def cadastrar():
 
 
 def logar():
-    usuarios = []
+    usuarios = carregar_usuarios()
 
-    if os.path.isfile("usuarios.json"):
-        with open("usuarios.json", "r") as arquivo:
-            usuarios = json.load(arquivo)
+    logar_usuario = input("\nDigite seu Usuário: ").lower()
+    logar_senha = getpass.getpass("Digite sua Senha: ")
 
-        logar_usuario = input("\nDigite seu Usuário: ").lower()
-        logar_senha = getpass.getpass("Digite sua Senha: ")
-
-        for usuario in usuarios:
-            if logar_usuario == "" or logar_senha == "":
-                print("\nUsuário ou Senha em Branco, Obrigatório Preencher.")
-                break
-            elif logar_usuario == usuario["id"] and logar_senha != usuario["senha"]:
-                print("\nLogin NÃO Realizado.")
-                break
-            elif logar_usuario != usuario["id"] and logar_senha == usuario["senha"]:
-                print("\nLogin NÃO Realizado.")
-                break
-            else:
-                logar_usuario == usuario["id"] and logar_senha == usuario["senha"]
-                print("\nLogin Realizado com Sucesso.")
-                print(f"\nQue bom que voltou '{logar_usuario}'.")
-                break
+    for usuario in usuarios:
+        if logar_usuario == "" or logar_senha == "":
+            print("\nUsuário ou Senha em Branco, Obrigatório Preencher.")
+            break
+        elif logar_usuario == usuario["id"] and logar_senha != usuario["senha"]:
+            print("\nLogin NÃO Realizado.")
+            break
+        elif logar_usuario != usuario["id"] and logar_senha == usuario["senha"]:
+            print("\nLogin NÃO Realizado.")
+            break
+        else:
+            logar_usuario == usuario["id"] and logar_senha == usuario["senha"]
+            print("\nLogin Realizado com Sucesso.")
+            print(f"\nQue bom que voltou '{logar_usuario}'.")
+            break
 
 
 def excluir():
-    usuarios = []
-
-    if os.path.isfile("usuarios.json"):
-        with open("usuarios.json", "r") as arquivo:
-            usuarios = json.load(arquivo)
+    usuarios = carregar_usuarios()
 
     deletar_usuario = input("\nDigite o Usuário que deseja Deletar: ").lower()
 
@@ -141,19 +135,17 @@ while True:
 
     if resposta == "1":
         listar_usuarios()
-        finalizar()
     elif resposta == "2":
         cadastrar()
-        finalizar()
     elif resposta == "3":
         logar()
-        finalizar()
     elif resposta == "4":
         excluir()
-        finalizar()
     elif resposta == "5":
         print("\nAté Breve!")
         break
     else:
         print("\nDigite apenas: 1, 2, 3, 4 ou 5")
-        finalizar()
+
+    
+    finalizar()
